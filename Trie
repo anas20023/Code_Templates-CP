@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+class Trie{
+public:
+    class node{
+        public:
+            bool end;
+            node *next[26];
+            node(){
+                end = false;
+                for(int i = 0; i<26; i++){
+                    next[i] = NULL;
+                }
+            }
+    };
+    node *trie;
+    Trie(){
+        trie = new node();
+    }
+
+    void insert(string word){
+        int i = 0, sz = word.size();
+        node *it = trie;
+        while(i < sz){
+            if(it->next[word[i]-'a'] == NULL)
+                it->next[word[i]-'a'] = new node();
+            it = it->next[word[i]-'a'];
+            i++;
+        }
+        it->end = true;
+    }
+
+    bool search(string word){
+        int i = 0, sz = word.size();
+        node *it = trie;
+        while(i < sz){
+            if(it->next[word[i]-'a'] == NULL)
+                return false;
+            it = it->next[word[i]-'a'];
+            i++;
+        }
+        return it->end;
+    }   
+};
+
+void solve(){
+
+    Trie *T = new Trie();
+    int n;
+    cin >> n;
+    for(int i = 0; i<n; i++){
+        string s;
+        cin >> s;
+        T->insert(s);
+    }
+
+    int q;
+    cin >> q;
+    while(q--){
+        string s;
+        cin >> s;
+        cout << T->search(s) << '\n';
+    }
+
+}
+
+int main(){
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);cout.tie(0);
+
+    int t;
+    cin >> t;
+
+    int cs = 1;
+
+    while(t--){
+
+        cout << "Case " << cs++ << ": ";
+        solve();
+
+    }
+
+    return 0;
+}
