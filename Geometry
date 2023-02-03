@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair <ll, ll> point;
+
+#define x first
+#define y second
+
+int n, m;
+
+inline ll area (point A, point B, point C) {
+  return A.x * B.y + B.x * C.y + C.x * A.y - A.y * B.x - B.y * C.x - C.y * A.x;
+}
+
+inline int sgn (point A, point B, point C) {
+  ll det = area(A, B, C);
+  return det ? (det > 0 ? 1 : -1) : 0;
+}
+
+inline bool intersect (point A, point B, point C, point D) {
+  if (sgn(A, B, C) == 0 and min(A.x, B.x) <= C.x and C.x <= max(A.x, B.x) and min(A.y, B.y) <= C.y and C.y <= max(A.y, B.y)) return 1; 
+  if (sgn(A, B, D) == 0 and min(A.x, B.x) <= D.x and D.x <= max(A.x, B.x) and min(A.y, B.y) <= D.y and D.y <= max(A.y, B.y)) return 1; 
+  return sgn(A, B, C) * sgn(A, B, D) == -1 and sgn(C, D, A) * sgn(C, D, B) == -1;
+}
+
+//ConvexHull
+
+vector <point> convexHull (vector <point> p) {
+  int n = p.size(), m = 0;
+  if (n < 3) return p;
+  vector <point> hull(n << 1);
+  sort(p.begin(), p.end());
+  for (int i = 0; i < n; ++i) {
+    while (m > 1 and area(hull[m - 2], hull[m - 1], p[i]) <= 0) --m;
+    hull[m++] = p[i];
+  }
+  for (int i = n - 2, j = m + 1; i >= 0; --i) {
+    while (m >= j and area(hull[m - 2], hull[m - 1], p[i]) <= 0) --m;
+    hull[m++] = p[i];
+  }
+  hull.resize(m - 1); return hull;
+}
+
+int main() {
+  cin >> n >> m;
+  vector <point> outerPoly(n), innerPoly(m), cand;
+  for (auto &[x, y] : outerPoly) cin >> x >> y, x *= 2, y *= 2;
+  for (auto &[x, y] : innerPoly) cin >> x >> y, x *= 2, y *= 2;
+  for (auto P : outerPoly) for (auto Q : innerPoly) {
+    bool bad = false;
+    for (int i = 0; i < m; ++i) {
+      auto A = innerPoly[i], B = innerPoly[(i + 1) % m];
+      if (A == Q or B == Q) continue;
+      if (intersect(P, Q, A, B)) {bad = true; break;}
+    }
+    if (!bad) cand.emplace_back((P.x + Q.x) / 2, (P.y + Q.y) / 2);
+  }
+  vector <point> hull = convexHull(cand);
+  cout << hull.size() << '\n';
+  for (auto P : hull) {
+    printf("%lld", P.x >> 1);
+    if (P.x & 1) printf(".5");
+    printf(" ");
+    printf("%lld", P.y >> 1);
+    if (P.y & 1) printf(".5");
+    puts("");
+  }
+  return 0;
+}
