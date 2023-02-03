@@ -1,0 +1,46 @@
+const int MAX = 1e5 + 10;
+int a[MAX], tree[MAX * 4];
+
+void build(int at, int L, int R) {
+    if (L == R) {
+        tree[at] = a[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at] += tree[left] + tree[right];
+}
+//call it using build(1, 0, arraySize-1);
+
+
+void update(int at, int L, int R, int l, int r, int val) {
+    if (l > R || r < L) return;
+    if (L >= l && R <= r) {
+        tree[at] = val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    update(left, L, mid, l, r, val);
+    update(right, mid + 1, R, l, r, val);
+    tree[at] = tree[left] + tree[right];
+}
+//call it using update(1,0,arraySize-1,l,r,val);
+
+int query(int at, int L, int R, int l, int r) {
+    if (l > R || r < L) return 0;
+    if (L >= l && R <= r) {
+        return tree[at];
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    int x = (left, L, mid, l, r);
+    int y = (right, mid + 1, R, l, r);
+    return x + y;
+}
+//call it using query(1,0,arraySize-1,l,r);
