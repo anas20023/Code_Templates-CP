@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int SIZE = 20;
+const int N = 100010;
+const int MAX = 2000010;
+
+ll a[N];
+int n, q, ptr, trie[MAX][10], tot[MAX];
+
+void insert (ll x) {
+  vector <int> vec;
+  while (x) vec.emplace_back(x % 10), x /= 10;
+  while (vec.size() < SIZE) vec.emplace_back(0);
+  reverse(vec.begin(), vec.end());
+  int u = 0;
+  for (int d : vec) {
+    if (!trie[u][d]) trie[u][d] = ++ptr;
+    u = trie[u][d], ++tot[u];
+  }
+} 
+
+ll query (vector <int> &ord, ll x) {
+  vector <int> vec;
+  while (x) vec.emplace_back(x % 10), x /= 10;
+  while (vec.size() < SIZE) vec.emplace_back(0);
+  reverse(vec.begin(), vec.end());
+  int u = 0; ll ans = 0;
+  for (int d : vec) {
+    for (int i = 0; i < 10; ++i) {
+      if (ord[i] == d) break;
+      ans += tot[trie[u][ord[i]]];
+    }
+    if (!trie[u][d]) break; u = trie[u][d];
+  }
+  return ans;
+}
+
+int main() {
+  cin >> n;
+  for (int i = 1; i <= n; ++i) scanf("%lld", a + i), insert(a[i]);
+  cin >> q;
+  while (q--) {
+    vector <int> ord(10);
+    for (int &x : ord) scanf("%d", &x);
+    ll bound; scanf("%lld", &bound);
+    printf("%lld\n", query(ord, bound));
+  }
+  return 0;
+}
