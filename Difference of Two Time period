@@ -1,0 +1,56 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    string s;
+    ll day1, day2;
+    cin >> s >> day1;
+
+    ll a, b, c, d, e, f;
+    char ch;
+    cin >> a >> ch >> b >> ch >> c;
+
+    cin >> s >> day2;
+    cin >> d >> ch >> e >> ch >> f;
+
+    ll t1 = a * 3600 + b * 60 + c;
+    ll t2 = d * 3600 + e * 60 + f;
+
+
+    ll ans = 0;
+
+    if (day1 == day2) {
+        ans += t2 - t1;
+    }
+    else {
+        ans += 24 * 3600 - t1;
+        ans += t2;
+        day1++;
+        day2--;
+        ans += (day2 - day1 + 1) * 24 * 3600;
+    }
+
+    ll ans1 = ans / 86400;
+    ans %= 86400;
+
+    ll ans2 = ans / 3600;
+    ans %= 3600;
+
+    ll ans3 = ans / 60;
+    ans %= 60;
+
+    ll ans4 = ans;
+
+    cout << ans1 << " day(s)\n";
+    cout << ans2 << " hour(s)\n";
+    cout << ans3 << " minute(s)\n";
+    cout << ans4 << " second(s)\n";
+
+    return 0;
+}
