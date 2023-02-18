@@ -39,8 +39,8 @@ int query(int at, int L, int R, int l, int r) {
     int mid = (L + R) / 2;
     int left = at * 2;
     int right = at * 2 + 1;
-    int x = (left, L, mid, l, r);
-    int y = (right, mid + 1, R, l, r);
+    int x = query(left, L, mid, l, r);
+    int y = query(right, mid + 1, R, l, r);
     return x + y;
 }
 //call it using query(1,0,arraySize-1,l,r);
