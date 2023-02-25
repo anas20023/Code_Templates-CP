@@ -16,17 +16,17 @@ void build(int at, int L, int R) {
 //call it using build(1, 0, arraySize-1);
 
 
-void update(int at, int L, int R, int l, int r, int val) {
-    if (l > R || r < L) return;
-    if (L >= l && R <= r) {
+void update(int at, int L, int R, int pos, int val) {
+    if (pos > R || pos < L) return;
+    if (L == R) {
         tree[at] = val;
         return;
     }
     int mid = (L + R) / 2;
     int left = at * 2;
     int right = at * 2 + 1;
-    update(left, L, mid, l, r, val);
-    update(right, mid + 1, R, l, r, val);
+    update(left, L, mid, pos, val);
+    update(right, mid + 1, R, pos, val);
     tree[at] = tree[left] + tree[right];
 }
 //call it using update(1,0,arraySize-1,l,r,val);
