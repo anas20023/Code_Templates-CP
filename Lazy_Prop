@@ -47,8 +47,8 @@ int query(int at, int L, int R, int l, int r, int carry) {
     int left = at * 2;
     int right = at * 2 + 1;
     int carryValue = carry + tree[at].lazy;
-    int x = (left, L, mid, l, r, carryValue);
-    int y = (right, mid + 1, R, l, r, carryValue);
+    int x = query(left, L, mid, l, r, carryValue);
+    int y = query(right, mid + 1, R, l, r, carryValue);
     return x + y;
 }
 //call it using query(1,0,arraySize-1,l,r,0);
