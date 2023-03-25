@@ -1,0 +1,117 @@
+/*******************String Hashing*********************/
+// Single Hashing
+// 1. Modular Exponentian Needed
+// 2. Init must be call and set the maximum length of the string
+// 3. If sub string hash required then Compute hash have to call
+// 4. If prefix and suffix hash required ComputePreAndSufHash have to call
+
+struct ModularExponentiation {
+    template <typename T> T Pow(T b, T p) {
+        T res = 1;
+        while (p > 0) {
+            if (p % 2 == 1) res = res * b;
+            b = b * b;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T Mod(T a, T m) {
+        return (((a % m) + m) % m);
+    }
+    template <typename T> T BigMod(T b, T p, T m) {
+        T res = 1;
+        if (b > m) b %= m;
+        while (p) {
+            if (p % 2 == 1) res = res * b % m;
+            b = b * b % m;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T ModInv(T b, T m) {
+        return BigMod(b , m - 2 , m);
+    }
+};
+struct DoubleHashing {
+    long long base = 1949313259;
+    long long mod = 2091573227;
+    vector <long long> pow , inv;
+    vector <long long> prehash , sufhash;
+    int maxN , flag = 0 , len;
+    void Init(int n) {
+        maxN = n + 2;
+        pow.resize(maxN);
+        inv.resize(maxN);
+        Generate();
+    }
+    void Generate() {
+        ModularExponentiation Ex;
+        pow[0] = 1;
+        inv[0] = 1;
+        long long minv = Ex.ModInv(base, mod);
+        for (int i = 1; i < maxN; i++) {
+            pow[i] = pow[i - 1] * base % mod;
+            inv[i] = inv[i - 1] * minv % mod;
+        }
+    }
+    long long GetHash(string &s) {
+        long long hash_val = 0;
+        int n = s.size();
+        for (int i = 0; i < n; i++) {
+            hash_val = (hash_val + s[i] * pow[i]) % mod;
+        }
+        return (hash_val << 32LL);
+    }
+    void ComputeHash(string &s) {
+        flag = 1;
+        len = s.size();
+        prehash.resize(maxN);
+        prehash[0] = 0;
+        for (int i = 0; i < len; i++) {
+            prehash[i + 1] = (prehash[i] + pow[i] * s[i]) % mod;
+        }
+    }
+    long long GetSubstrHash(int l , int r) {
+        if (!flag) { cout << "ComputeHash\n"; return -1;}
+        long long hash_val = (prehash[r + 1] - prehash[l]) * inv[l] % mod;
+        if (hash_val < 0) hash_val += mod;
+        return (hash_val << 32LL);
+    }
+    void ComputePreAndSufHash(string &s) {
+        flag = 1;
+        len = s.size();
+        prehash.resize(maxN);
+        sufhash.resize(maxN);
+        prehash[0] = sufhash[0] = 0;
+        for (int i = 0; i < len; i++) {
+            prehash[i + 1] = (prehash[i] + pow[i] * s[i]) % mod;
+            sufhash[i + 1] = (sufhash[i] + pow[len - i + 1] * s[i]) % mod;
+        }
+    }
+    long long GetPrefixHash(int l , int r) {
+        return GetSubstrHash(l , r);
+    }
+    long long GetSuffixHash(int l , int r) {
+        if (!flag) { cout << "ComputePreAndSufHash\n"; return -1;}
+        long long hash_val = (sufhash[r + 1] - sufhash[l]) * inv[len - r + 1] % mod;
+        if (hash_val < 0) hash_val += mod;
+        return (hash_val << 32LL);
+    }
+    bool IsPallindrome(int l , int r) {
+        return (GetPrefixHash(l , r) == GetSuffixHash(l , r));
+    }
+    vector <int> RabinKarp(string &txt , string &ptrn) {
+        ComputeHash(txt);
+        long long ptrn_hash = GetHash(ptrn);
+        vector <int> occurences;
+        int txtlen = txt.size();
+        int ptrnlen = ptrn.size();
+        for (int i = 0; i < txtlen - ptrnlen + 1; i++) {
+            long long cur_hash = GetSubstrHash(i , ((i + ptrnlen) - 1));
+            // pattern match...
+            if (cur_hash == ptrn_hash)
+                occurences.emplace_back(i + 1);
+        }
+        return occurences;
+    }
+} ;
