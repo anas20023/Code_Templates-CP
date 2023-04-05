@@ -1,0 +1,65 @@
+const int MAX = 1e5 + 10;
+int a[MAX], rootN;
+
+struct Q {
+	int idx, l, r, k;
+} q[5005];
+
+bool custom(Q q1, Q q2) {
+	if (q1.l / rootN == q2.l / rootN)
+		return q1.r > q2.r;
+	return q1.l < q2.l;
+}
+
+void solve() {
+
+	int n, m;
+	cin >> n >> m;
+
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+	}
+
+	rootN = sqrtl(n);
+
+	for (int i = 0; i < m; i++) {
+		int l, r, k;
+		cin >> l >> r >> k;
+		l--; r--; k--;
+		q[i].l = l;
+		q[i].r = r;
+		q[i].k = k;
+		q[i].idx = i;
+	}
+
+	sort(q, q + m, custom);
+
+	int curr_l = 0, curr_r = -1, l, r;
+
+	vector<int>ans(m);
+
+	for (int i = 0; i < m; i++) {
+		l = q[i].l;
+		r = q[i].r;
+		while (curr_r < r) {
+			curr_r++;
+			//do
+		}
+		while (curr_l > l) {
+			curr_l--;
+			//do
+		}
+		while (curr_r > r) {
+			//do
+			curr_r--;
+		}
+		while (curr_l < l) {
+			//do
+			curr_l++;
+		}
+		ans[q[i].idx] = /*do*/;
+	}
+
+	for (auto it : ans)cout << it << nn;
+
+}
