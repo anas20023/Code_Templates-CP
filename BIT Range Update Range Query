@@ -1,0 +1,79 @@
+#include<bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define ll long long
+#define nn '\n'
+const int MAX = 2e5+10;
+ll a[MAX], n, q, tree[MAX][2];
+ 
+void update(int c, int i, int v){
+	while(i <= n){
+		tree[i][c] += v;
+		i += i & (-i);
+	}
+}
+
+ll range_update(ll l, ll r, ll v){
+	update(0, l, v);
+	update(0, r+1, -v);
+	update(1, l, v*(l-1));
+	update(1, r+1, -v * r);
+}
+ 
+ll sum(int c, int i){
+	ll res = 0;
+	while(i){
+		res += tree[i][c];
+		i -= i & (-i);
+	}
+	return res;
+}
+
+ll prefix_sum(ll i){
+	return sum(0, i) * i - sum(1, i);
+}
+
+ll range_sum(int l, int r){
+	return prefix_sum(r) - prefix_sum(l-1);
+}
+ 
+void solve(){
+ 
+	cin >> n >> q;
+
+	vector<ll>pre(n+1);
+ 
+	for(int i = 1; i <= n; i++){
+		cin >> a[i];
+		pre[i] += pre[i-1] + a[i];
+	}
+ 
+	while(q--){
+		int t;
+		cin >> t;
+		if(t == 1){
+			int l, r, v;
+			cin >> l >> r >> v;
+			range_update(l,r,v);
+		}
+		else{
+			int l, r;
+			cin >> l >> r;
+			cout << pre[r] - pre[l-1] + range_sum(l,r) << nn;
+		}
+	}
+}
+ 
+int main(){
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);cout.tie(0);
+ 
+	int t = 1;
+ 
+	while(t--){
+		solve();
+	}
+ 
+	return 0;
+}
