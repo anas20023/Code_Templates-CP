@@ -1,0 +1,106 @@
+#include<bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define ll long long
+#define nn '\n'
+const int MAX = 2e5 + 10;
+ll a[MAX], pre[MAX];
+ 
+struct node {
+    ll value = 0, lazy = 0;
+} tree[MAX * 4];
+ 
+void build(int at, int L, int R) {
+    if (L == R) {
+        tree[at].value = pre[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at].value = max(tree[left].value , tree[right].value);
+}
+ 
+void update(int at, int L, int R, int l, int r, ll val) {
+    if (l > r) return;
+    if (L == l && R == r) {
+        tree[at].value += val;
+        tree[at].lazy += val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    update(left, L, mid, l, min(mid,r), val);
+    update(right, mid + 1, R, max(l, mid+1), r, val);
+    tree[at].value = max(tree[left].value, tree[right].value);
+}
+ 
+ll query(int at, int L, int R, int l, int r) {
+    if (l > r)
+        return LLONG_MIN;
+    if (l == L && r == R)
+        return tree[at].value;
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    return max(query(left, L, mid, l, min(r, mid)), 
+               query(right, mid+1, R, max(l, mid+1), r));
+}
+ 
+void solve(){
+ 
+	int n, q;
+	cin >> n >> q;
+ 
+	for(int i = 1; i <= n; i++){
+		cin >> a[i];
+		pre[i] = pre[i-1] + a[i];
+	}
+ 
+	build(1,1,n);
+ 
+	while(q--){
+		int t;
+		cin >> t;
+		if(t == 1){
+			ll i, val;
+			cin >> i >> val;
+			update(1,1,n,i,n,val-a[i]);
+			a[i] = val;
+		}
+		else{
+			int l, r;
+			cin >> l >> r;
+			ll res = query(1,1,n,l,r); 
+			if(l>1)res-=query(1,1,n,l-1,l-1);
+			cout << max(0ll,res) << nn;
+		}
+	}
+}
+ 
+int main(){
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);cout.tie(0);
+ 
+	int t = 1;
+ 
+	while(t--){
+		solve();
+	}
+ 
+	return 0;
+}
