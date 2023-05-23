@@ -1,0 +1,4 @@
+Formulas:
+1.Number of non-negative integral solutions of equation x1 + x2 + …… + xn = k is given by (n+k-1)! / (n-1)!*k!. 
+2.Number of positive integral solutions of equation x1 + x2 + ….. + xn = k is given by (k-1)! / (n-1)! * (k-n)!. 
+3.Derangment Sequence, D(n)=(D(n−1)+D(n−2))(n−1).
