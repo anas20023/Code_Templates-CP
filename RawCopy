@@ -1,0 +1,1112 @@
+//BIT Range Update Range Query
+#include<bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define ll long long
+#define nn '\n'
+const int MAX = 2e5+10;
+ll a[MAX], n, q, tree[MAX][2];
+ 
+void update(int c, int i, int v){
+	while(i <= n){
+		tree[i][c] += v;
+		i += i & (-i);
+	}
+}
+
+ll range_update(ll l, ll r, ll v){
+	update(0, l, v);
+	update(0, r+1, -v);
+	update(1, l, v*(l-1));
+	update(1, r+1, -v * r);
+}
+ 
+ll sum(int c, int i){
+	ll res = 0;
+	while(i){
+		res += tree[i][c];
+		i -= i & (-i);
+	}
+	return res;
+}
+
+ll prefix_sum(ll i){
+	return sum(0, i) * i - sum(1, i);
+}
+
+ll range_sum(int l, int r){
+	return prefix_sum(r) - prefix_sum(l-1);
+}
+ 
+void solve(){
+ 
+	cin >> n >> q;
+
+	vector<ll>pre(n+1);
+ 
+	for(int i = 1; i <= n; i++){
+		cin >> a[i];
+		pre[i] += pre[i-1] + a[i];
+	}
+ 
+	while(q--){
+		int t;
+		cin >> t;
+		if(t == 1){
+			int l, r, v;
+			cin >> l >> r >> v;
+			range_update(l,r,v);
+		}
+		else{
+			int l, r;
+			cin >> l >> r;
+			cout << pre[r] - pre[l-1] + range_sum(l,r) << nn;
+		}
+	}
+}
+ 
+int main(){
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);cout.tie(0);
+ 
+	int t = 1;
+ 
+	while(t--){
+		solve();
+	}
+ 
+	return 0;
+}
+
+//Difference of Two Time period
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    string s;
+    ll day1, day2;
+    cin >> s >> day1;
+
+    ll a, b, c, d, e, f;
+    char ch;
+    cin >> a >> ch >> b >> ch >> c;
+
+    cin >> s >> day2;
+    cin >> d >> ch >> e >> ch >> f;
+
+    ll t1 = a * 3600 + b * 60 + c;
+    ll t2 = d * 3600 + e * 60 + f;
+
+
+    ll ans = 0;
+
+    if (day1 == day2) {
+        ans += t2 - t1;
+    }
+    else {
+        ans += 24 * 3600 - t1;
+        ans += t2;
+        day1++;
+        day2--;
+        ans += (day2 - day1 + 1) * 24 * 3600;
+    }
+
+    ll ans1 = ans / 86400;
+    ans %= 86400;
+
+    ll ans2 = ans / 3600;
+    ans %= 3600;
+
+    ll ans3 = ans / 60;
+    ans %= 60;
+
+    ll ans4 = ans;
+
+    cout << ans1 << " day(s)\n";
+    cout << ans2 << " hour(s)\n";
+    cout << ans3 << " minute(s)\n";
+    cout << ans4 << " second(s)\n";
+
+    return 0;
+}
+
+//DOUBLE HASH
+/*******************String Hashing*********************/
+// Double Hashing
+// 1. Modular Exponentian Needed
+// 2. Init must be call and set the maximum length of the string
+// 3. If sub string hash required then Compute hash have to call
+// 4. If prefix and suffix hash required ComputePreAndSufHash have to call
+
+struct ModularExponentiation {
+    template <typename T> T Pow(T b, T p) {
+        T res = 1;
+        while (p > 0) {
+            if (p % 2 == 1) res = res * b;
+            b = b * b;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T Mod(T a, T m) { 
+        return (((a % m) + m) % m);
+    }
+    template <typename T> T BigMod(T b, T p, T m) {
+        T res = 1;
+        if (b > m) b %= m;
+        while (p) {
+            if (p % 2 == 1) res = res * b % m;
+            b = b * b % m;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T ModInv(T b,T m) {
+        return BigMod(b , m - 2 , m);
+    }
+};
+struct DoubleHashing {
+    long long base[2] = {1949313259, 1997293877};
+    long long mod[2] = {2091573227, 2117566807};
+    vector <long long> pow[2] , inv[2];
+    vector <long long> prehash[2] , sufhash[2];
+    int maxN , flag = 0 , len;
+    void Init(int n) {
+        maxN = n + 2;
+        for (int i = 0; i < 2; i++) {
+            pow[i].resize(maxN);
+            inv[i].resize(maxN);
+        }
+        Generate();
+    }
+    void Generate() {
+        ModularExponentiation Ex;
+        for (int j = 0; j < 2; j++) {
+            pow[j][0] = 1;
+            inv[j][0] = 1;
+            long long minv = Ex.ModInv(base[j] ,mod[j]);
+            for (int i = 1; i < maxN; i++) {
+                pow[j][i] = pow[j][i - 1] * base[j] % mod[j];
+                inv[j][i] = inv[j][i - 1] * minv % mod[j];
+            }
+        }
+    }
+    long long GetHash(string &s) {
+        long long hash_val[2] = {0 , 0};
+        int n = s.size();
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < n; i++) {
+                hash_val[j] = (hash_val[j] + s[i] * pow[j][i]) % mod[j];
+            }
+        }
+        return (hash_val[0] << 32LL) | hash_val[1];
+    }
+    void ComputeHash(string &s) {
+        flag = 1;
+        len = s.size();
+        for (int j = 0; j < 2; j++) prehash[j].resize(maxN);
+        for (int j = 0; j < 2; j++) prehash[j][0] = 0;
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < len; i++) {
+                prehash[j][i + 1] = (prehash[j][i] + pow[j][i] * s[i]) % mod[j];
+            }
+        }
+    }
+    long long GetSubstrHash(int l , int r) {
+        if (!flag) { cout << "ComputeHash\n"; return -1;}
+        long long hash_val[2];
+        for (int j = 0; j < 2; j++) 
+            hash_val[j] = (prehash[j][r + 1] - prehash[j][l]) * inv[j][l] % mod[j];
+        for (int j = 0; j < 2; j++) if (hash_val[j] < 0) hash_val[j] += mod[j];   
+        return (hash_val[0] << 32) | hash_val[1]; 
+    }
+    void ComputePreAndSufHash(string &s) {
+        flag = 1;
+        len = s.size();
+        for (int j = 0; j < 2; j++) { 
+            prehash[j].resize(maxN);
+            sufhash[j].resize(maxN);
+        }
+        for (int j = 0; j < 2; j++) prehash[j][0] = sufhash[j][0] = 0;
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < len; i++) {
+                prehash[j][i + 1] = (prehash[j][i] + pow[j][i] * s[i]) % mod[j];
+                sufhash[j][i + 1] = (sufhash[j][i] + pow[j][len - i + 1] * s[i]) % mod[j];
+            }
+        }
+    }
+    long long GetPrefixHash(int l , int r) {
+        return GetSubstrHash(l , r);
+    }
+    long long GetSuffixHash(int l , int r) {
+        if (!flag) { cout << "ComputePreAndSufHash\n"; return -1;}
+        long long hash_val[2];
+        for (int j = 0; j < 2; j++) 
+            hash_val[j] = (sufhash[j][r + 1] - sufhash[j][l]) * inv[j][len - r + 1] % mod[j];
+        for (int j = 0; j < 2; j++) if (hash_val[j] < 0) hash_val[j] += mod[j];   
+        return (hash_val[0] << 32) | hash_val[1];  
+    } 
+    bool IsPallindrome(int l , int r) {
+        return (GetPrefixHash(l , r) == GetSuffixHash(l , r));
+    }
+    vector <int> RabinKarp(string &txt , string &ptrn) {
+        ComputeHash(txt);
+        long long ptrn_hash = GetHash(ptrn);
+        vector <int> occurences;
+        int txtlen = txt.size();
+        int ptrnlen = ptrn.size();
+        for (int i = 0; i < txtlen - ptrnlen + 1; i++) {
+            long long cur_hash = GetSubstrHash(i , ((i + ptrnlen) - 1));
+            // pattern match...
+            if (cur_hash == ptrn_hash) 
+                occurences.emplace_back(i + 1);
+        }
+        return occurences;
+    }
+} ;
+
+//Fibonacci
+#include <map>
+#include <iostream>
+using namespace std;
+
+#define long long long
+const long M = 1000000007; // modulo
+map<long, long> F;
+
+long f(long n) {
+	if (F.count(n)) return F[n];
+	long k=n/2;
+	if (n%2==0) { // n=2*k
+		return F[n] = (f(k)*f(k) + f(k-1)*f(k-1)) % M;
+	} else { // n=2*k+1
+		return F[n] = (f(k)*f(k+1) + f(k-1)*f(k)) % M;
+	}
+}
+
+main(){
+	long n;
+	F[0]=F[1]=1;
+	while (cin >> n)
+	cout << (n==0 ? 0 : f(n-1)) << endl;
+}
+
+//ConvexHull
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair <ll, ll> point;
+
+#define x first
+#define y second
+
+int n, m;
+
+inline ll area (point A, point B, point C) {
+  return A.x * B.y + B.x * C.y + C.x * A.y - A.y * B.x - B.y * C.x - C.y * A.x;
+}
+
+inline int sgn (point A, point B, point C) {
+  ll det = area(A, B, C);
+  return det ? (det > 0 ? 1 : -1) : 0;
+}
+
+inline bool intersect (point A, point B, point C, point D) {
+  if (sgn(A, B, C) == 0 and min(A.x, B.x) <= C.x and C.x <= max(A.x, B.x) and min(A.y, B.y) <= C.y and C.y <= max(A.y, B.y)) return 1; 
+  if (sgn(A, B, D) == 0 and min(A.x, B.x) <= D.x and D.x <= max(A.x, B.x) and min(A.y, B.y) <= D.y and D.y <= max(A.y, B.y)) return 1; 
+  return sgn(A, B, C) * sgn(A, B, D) == -1 and sgn(C, D, A) * sgn(C, D, B) == -1;
+}
+
+//ConvexHull
+
+vector <point> convexHull (vector <point> p) {
+  int n = p.size(), m = 0;
+  if (n < 3) return p;
+  vector <point> hull(n << 1);
+  sort(p.begin(), p.end());
+  for (int i = 0; i < n; ++i) {
+    while (m > 1 and area(hull[m - 2], hull[m - 1], p[i]) <= 0) --m;
+    hull[m++] = p[i];
+  }
+  for (int i = n - 2, j = m + 1; i >= 0; --i) {
+    while (m >= j and area(hull[m - 2], hull[m - 1], p[i]) <= 0) --m;
+    hull[m++] = p[i];
+  }
+  hull.resize(m - 1); return hull;
+}
+
+int main() {
+  cin >> n >> m;
+  vector <point> outerPoly(n), innerPoly(m), cand;
+  for (auto &[x, y] : outerPoly) cin >> x >> y, x *= 2, y *= 2;
+  for (auto &[x, y] : innerPoly) cin >> x >> y, x *= 2, y *= 2;
+  for (auto P : outerPoly) for (auto Q : innerPoly) {
+    bool bad = false;
+    for (int i = 0; i < m; ++i) {
+      auto A = innerPoly[i], B = innerPoly[(i + 1) % m];
+      if (A == Q or B == Q) continue;
+      if (intersect(P, Q, A, B)) {bad = true; break;}
+    }
+    if (!bad) cand.emplace_back((P.x + Q.x) / 2, (P.y + Q.y) / 2);
+  }
+  vector <point> hull = convexHull(cand);
+  cout << hull.size() << '\n';
+  for (auto P : hull) {
+    printf("%lld", P.x >> 1);
+    if (P.x & 1) printf(".5");
+    printf(" ");
+    printf("%lld", P.y >> 1);
+    if (P.y & 1) printf(".5");
+    puts("");
+  }
+  return 0;
+}
+
+//LCA
+int depth[MAX];
+int parent[MAX][18];
+
+void dfs(int v = 1, int par = 0, int h = 1){
+    depth[v] = h;
+    parent[v][0] = par;
+    for(int i = 1; i < 18; i++){
+        parent[v][i] = parent[parent[v][i-1]][i-1];
+    }
+    for(int &it: g[v]){
+        if(it != par)dfs(it,v,h+1);
+    }
+}
+
+int LCA(int a, int b){
+    if(depth[a] < depth[b])
+        swap(a,b);
+    int k = depth[a]-depth[b];
+    for(int i = 17; i >= 0; i--){
+        if(k&(1<<i)){
+          a = parent[a][i];
+        }
+    }
+    if(a == b)return a;
+    for(int i = 17; i >= 0; i--){
+        if(parent[a][i] != parent[b][i]){
+            a = parent[a][i];
+            b = parent[b][i];
+        }
+    }
+    return parent[a][0];
+}
+
+//LCS
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+/*
+// Recursive 
+int LCS(string &s, string &t, int i, int j, vector<vector<int>>&dp) {
+    if (i == 0 or j == 0)return 0;
+    if (dp[i][j] != -1)return dp[i][j];
+
+    if (s[i - 1] == t[j - 1]) {
+        return dp[i][j] = max(1 + LCS(s, t, i - 1, j - 1, dp), max(LCS(s, t, i - 1, j, dp), LCS(s, t, i, j - 1, dp)));
+    }
+
+    return dp[i][j] = max(LCS(s, t, i - 1, j, dp), LCS(s, t, i, j - 1, dp));
+}
+*/
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    string s, t;
+    cin >> s >> t;
+
+    int n = s.size(), m = t.size();
+    
+    /*
+    
+    If Recursive Call this Use this
+    vector<vector<int>>dp(n + 1, vector<int>(m + 1, -1));
+    cout << LCS(s, t, n-1, m-1, dp);
+    
+    */
+
+    vector<vector<int>>dp(n + 1, vector<int>(m + 1));
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            if (s[i - 1] == t[j - 1]) {
+                dp[i][j] = max(1 + dp[i - 1][j - 1], max(dp[i - 1][j], dp[i][j - 1]));
+            }
+            else {
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+
+    /*
+
+    LCS printing...
+
+    int i = n, j = m;
+
+    string ss = "";
+
+    while (i and j) {
+        if (s[i - 1] == t[j - 1]) {
+            ss += s[i - 1];
+            i--; j--;
+        }
+        else {
+            if (dp[i - 1][j] < dp[i][j - 1]) {
+                j--;
+            }
+            else {
+                i--;
+            }
+        }
+    }
+
+
+    reverse(ss.begin(), ss.end());
+
+    cout << ss << '\n';
+
+    */
+
+    return 0;
+}
+
+//Lazy Propagation
+
+const int MAX = 1e5 + 10;
+int a[MAX];
+
+struct node {
+    int value = 0;
+    int lazy = 0;
+} tree[MAX * 4];
+
+void build(int at, int L, int R) {
+    tree[at].lazy = 0;
+    if (L == R) {
+        tree[at].value = a[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at].value += tree[left].value + tree[right].value;
+}
+//call it using build(1, 0, arraySize-1);
+
+
+void update(int at, int L, int R, int l, int r, int val) {
+    if (l > R || r < L) return;
+    if (L >= l && R <= r) {
+        tree[at].value += (R - L + 1) * val;
+        tree[at].lazy += val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    update(left, L, mid, l, r, val);
+    update(right, mid + 1, R, l, r, val);
+    tree[at].value = tree[left].value + tree[right].value + (R - L + 1) * tree[at].lazy;
+}
+//call it using update(1,0,arraySize-1,l,r,val);
+
+int query(int at, int L, int R, int l, int r, int carry) {
+    if (l > R || r < L) return 0;
+    if (L >= l && R <= r) {
+        return tree[at].value + carry * (R - L + 1);
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    int carryValue = carry + tree[at].lazy;
+    int x = query(left, L, mid, l, r, carryValue);
+    int y = query(right, mid + 1, R, l, r, carryValue);
+    return x + y;
+}
+//call it using query(1,0,arraySize-1,l,r,0);
+
+//Manacher
+
+#include <bits/stdc++.h>
+using namespace std;
+
+/************************Manacher's Algorithm*****************************/
+/*
+    Algorithm:
+    1. Finds all sub-palindromes in O(N)
+    
+    Applications:
+    1. Finds Longest Palindromes O(N)
+*/
+/*
+    Guide:
+
+    1. string is 0 based indexed of length n.
+    2. the manacher will make a string of length 2 * n + 1. 
+        ex: "abba" will be "#a#b#b#a#".
+    3. Odd length palindromes: 
+        for all i = 0 to i < n
+            i is a center and stored maxlen palindrome in 2i + 1 th index in P.
+    4. Even length palindromes: 
+        there are n - 1 centered positions. 
+        for all i = 0 to i < n - 1
+            max length palindrome centered at i found in 2i + 2 th index in P.
+*/
+vector<int> Manacher_Odd_Length(string T) {
+    int n = T.size();
+    vector <int> P(n);
+    int C = 0, R = -1, rad; 
+    for (int i = 0; i < n; ++i) {
+        if (i <= R) {
+            rad = min(P[2 * C - i], R - i); 
+        } else {
+            rad = 0; 
+        }
+        // Try to extend
+        while (i + rad < n && i - rad >= 0 && T[i - rad] == T[i + rad]) {
+            rad++; 
+        }
+        P[i] = rad;
+        if (i + rad - 1 > R) {
+            C = i; 
+            R = i + rad - 1; 
+        }
+    }
+    for (int i = 0; i < (int)P.size(); i ++) {
+        P[i]--;
+    }
+    return P;
+}
+vector <int> Manacher(const string &s) {
+    string t;
+    for(auto c: s) {
+        t += string("#") + c;
+    }
+    return Manacher_Odd_Length(t + "#");
+}
+string LongestPalindrome(const string &s) {
+    vector <int> P = Manacher(s);
+    int mxlen = 0, startpos = -1;
+    for (int i = 0; i < (int)s.size(); i++) {
+        if (mxlen < P[2 * i + 1]) {
+            mxlen = P[2 * i + 1];
+            startpos = i - P[2 * i + 1] / 2;
+        }
+    }
+    for (int i = 0; i < (int)s.size() - 1; i++) {
+        if (mxlen < P[2 * i + 2]) {
+            mxlen = P[2 * i + 2];
+            startpos = i - P[2 * i + 2] / 2 + 1;
+        }
+    }
+    return s.substr(startpos, mxlen);
+}
+int main() {
+    cin.tie(0);
+    cout.tie(0);
+
+    string s; cin >> s;
+    cout << LongestPalindrome(s) << "\n";
+    return 0;
+}
+
+//Mo's Algo
+
+const int MAX = 1e5 + 10;
+int a[MAX], rootN;
+
+struct Q {
+	int idx, l, r, k;
+} q[5005];
+
+bool custom(Q q1, Q q2) {
+	if (q1.l / rootN == q2.l / rootN)
+		return q1.r > q2.r;
+	return q1.l < q2.l;
+}
+
+void solve() {
+
+	int n, m;
+	cin >> n >> m;
+
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+	}
+
+	rootN = sqrtl(n);
+
+	for (int i = 0; i < m; i++) {
+		int l, r, k;
+		cin >> l >> r >> k;
+		l--; r--; k--;
+		q[i].l = l;
+		q[i].r = r;
+		q[i].k = k;
+		q[i].idx = i;
+	}
+
+	sort(q, q + m, custom);
+
+	int curr_l = 0, curr_r = -1, l, r;
+
+	vector<int>ans(m);
+
+	for (int i = 0; i < m; i++) {
+		l = q[i].l;
+		r = q[i].r;
+		while (curr_r < r) {
+			curr_r++;
+			//do
+		}
+		while (curr_l > l) {
+			curr_l--;
+			//do
+		}
+		while (curr_r > r) {
+			//do
+			curr_r--;
+		}
+		while (curr_l < l) {
+			//do
+			curr_l++;
+		}
+		ans[q[i].idx] = /*do*/;
+	}
+
+	for (auto it : ans)cout << it << nn;
+
+}
+
+//O(N) sieve
+
+vector <int> is_prime(LIMIT, true);
+is_prime[0] = is_prime[1] = false;
+
+vector <int> primes;
+
+for(int i = 2; i < LIMIT; i++)
+{
+    if(is_prime[i])
+       primes.push_back(i);
+
+    for(int j = 0; j < primes.size() && i*primes[j] < LIMIT; j++)
+    {
+       is_prime[i*primes[j]] = false;
+
+       if(i%primes[j] == 0) break;
+    }
+}
+
+//Ordered_Set
+
+// C++ program to demonstrate the
+// ordered set in GNU C++
+#include <iostream>
+using namespace std;
+
+// Header files, namespaces,
+// macros as defined above
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#include <ext/pb_ds/detail/standard_policies.hpp>
+using namespace __gnu_pbds;
+
+template <class T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+//use less_equal for multiset
+
+// Driver program to test above functions
+int main()
+{
+	// Ordered set declared with name o_set
+	ordered_set<int> o_set;
+
+	// insert function to insert in
+	// ordered set same as SET STL
+	o_set.insert(5);
+	o_set.insert(1);
+	o_set.insert(2);
+
+	// Finding the second smallest element
+	// in the set using * because
+	// find_by_order returns an iterator
+	cout << *(o_set.find_by_order(1))
+		<< endl;
+
+	// Finding the number of elements
+	// strictly less than k=4
+	cout << o_set.order_of_key(4)
+		<< endl;
+
+	// Finding the count of elements less
+	// than or equal to 4 i.e. strictly less
+	// than 5 if integers are present
+	cout << o_set.order_of_key(5)
+		<< endl;
+
+	// Deleting 2 from the set if it exists
+	if (o_set.find(2) != o_set.end())
+		o_set.erase(o_set.find(2));
+
+	// Now after deleting 2 from the set
+	// Finding the second smallest element in the set
+	cout << *(o_set.find_by_order(1))
+		<< endl;
+
+	// Finding the number of
+	// elements strictly less than k=4
+	cout << o_set.order_of_key(4)
+		<< endl;
+
+	return 0;
+}
+
+//RMQ
+// video https://youtu.be/0jWeUdxrGm4
+// problem https://www.spoj.com/problems/RMQSQ/
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAX_N = 100'005;
+const int LOG = 17;
+int a[MAX_N];
+int m[MAX_N][LOG]; // m[i][j] is minimum among a[i..i+2^j-1]
+int bin_log[MAX_N];
+
+int query(int L, int R) { // O(1)
+	int length = R - L + 1;
+	int k = bin_log[length];
+	return min(m[L][k], m[R-(1<<k)+1][k]);
+}
+
+int main() {
+	// 1) read input
+	int n;
+	cin >> n;
+	bin_log[1] = 0;
+	for(int i = 2; i <= n; i++) {
+		bin_log[i] = bin_log[i/2]+1;
+	}
+	for(int i = 0; i < n; i++) {
+		cin >> a[i];
+		m[i][0] = a[i];
+	}
+	// 2) preprocessing, O(N*log(N))
+	for(int k = 1; k < LOG; k++) {
+		for(int i = 0; i + (1 << k) - 1 < n; i++) {
+			m[i][k] = min(m[i][k-1], m[i+(1<<(k-1))][k-1]);
+		}
+	}
+	// 3) answer queries
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; i++) {
+		int L, R;
+		cin >> L >> R;
+		cout << query(L, R) << "\n";
+	}
+}
+
+//Range Update Range Query
+
+#include<bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define ll long long
+#define nn '\n'
+const int MAX = 2e5 + 10;
+ll a[MAX], pre[MAX];
+ 
+struct node {
+    ll value = 0, lazy = 0;
+} tree[MAX * 4];
+ 
+void build(int at, int L, int R) {
+    if (L == R) {
+        tree[at].value = pre[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at].value = max(tree[left].value , tree[right].value);
+}
+ 
+void update(int at, int L, int R, int l, int r, ll val) {
+    if (l > r) return;
+    if (L == l && R == r) {
+        tree[at].value += val;
+        tree[at].lazy += val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    update(left, L, mid, l, min(mid,r), val);
+    update(right, mid + 1, R, max(l, mid+1), r, val);
+    tree[at].value = max(tree[left].value, tree[right].value);
+}
+ 
+ll query(int at, int L, int R, int l, int r) {
+    if (l > r)
+        return LLONG_MIN;
+    if (l == L && r == R)
+        return tree[at].value;
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    return max(query(left, L, mid, l, min(r, mid)), 
+               query(right, mid+1, R, max(l, mid+1), r));
+}
+ 
+void solve(){
+ 
+	int n, q;
+	cin >> n >> q;
+ 
+	for(int i = 1; i <= n; i++){
+		cin >> a[i];
+		pre[i] = pre[i-1] + a[i];
+	}
+ 
+	build(1,1,n);
+ 
+	while(q--){
+		int t;
+		cin >> t;
+		if(t == 1){
+			ll i, val;
+			cin >> i >> val;
+			update(1,1,n,i,n,val-a[i]);
+			a[i] = val;
+		}
+		else{
+			int l, r;
+			cin >> l >> r;
+			ll res = query(1,1,n,l,r); 
+			if(l>1)res-=query(1,1,n,l-1,l-1);
+			cout << max(0ll,res) << nn;
+		}
+	}
+}
+ 
+int main(){
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);cout.tie(0);
+ 
+	int t = 1;
+ 
+	while(t--){
+		solve();
+	}
+ 
+	return 0;
+}
+
+//Segment Tree Point Update
+const int MAX = 1e5 + 10;
+int a[MAX], tree[MAX * 4];
+
+void build(int at, int L, int R) {
+    if (L == R) {
+        tree[at] = a[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at] = tree[left] + tree[right];
+}
+//call it using build(1, 0, arraySize-1);
+
+
+void update(int at, int L, int R, int pos, int val) {
+    if (pos > R || pos < L) return;
+    if (L == R) {
+        tree[at] = val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    update(left, L, mid, pos, val);
+    update(right, mid + 1, R, pos, val);
+    tree[at] = tree[left] + tree[right];
+}
+//call it using update(1,0,arraySize-1,l,r,val);
+
+int query(int at, int L, int R, int l, int r) {
+    if (l > R || r < L) return 0;
+    if (L >= l && R <= r) {
+        return tree[at];
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    int x = query(left, L, mid, l, r);
+    int y = query(right, mid + 1, R, l, r);
+    return x + y;
+}
+//call it using query(1,0,arraySize-1,l,r);
+
+//Single Hash
+/*******************String Hashing*********************/
+// Single Hashing
+// 1. Modular Exponentian Needed
+// 2. Init must be call and set the maximum length of the string
+// 3. If sub string hash required then Compute hash have to call
+// 4. If prefix and suffix hash required ComputePreAndSufHash have to call
+
+struct ModularExponentiation {
+    template <typename T> T Pow(T b, T p) {
+        T res = 1;
+        while (p > 0) {
+            if (p % 2 == 1) res = res * b;
+            b = b * b;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T Mod(T a, T m) {
+        return (((a % m) + m) % m);
+    }
+    template <typename T> T BigMod(T b, T p, T m) {
+        T res = 1;
+        if (b > m) b %= m;
+        while (p) {
+            if (p % 2 == 1) res = res * b % m;
+            b = b * b % m;
+            p /= 2;
+        }
+        return res;
+    }
+    template <typename T> T ModInv(T b, T m) {
+        return BigMod(b , m - 2 , m);
+    }
+};
+struct SingleHashing {
+    long long base = 1949313259;
+    long long mod = 2091573227;
+    vector <long long> pow , inv;
+    vector <long long> prehash , sufhash;
+    int maxN , flag = 0 , len;
+    void Init(int n) {
+        maxN = n + 2;
+        pow.resize(maxN);
+        inv.resize(maxN);
+        Generate();
+    }
+    void Generate() {
+        ModularExponentiation Ex;
+        pow[0] = 1;
+        inv[0] = 1;
+        long long minv = Ex.ModInv(base, mod);
+        for (int i = 1; i < maxN; i++) {
+            pow[i] = pow[i - 1] * base % mod;
+            inv[i] = inv[i - 1] * minv % mod;
+        }
+    }
+    long long GetHash(string &s) {
+        long long hash_val = 0;
+        int n = s.size();
+        for (int i = 0; i < n; i++) {
+            hash_val = (hash_val + s[i] * pow[i]) % mod;
+        }
+        return (hash_val << 32LL);
+    }
+    void ComputeHash(string &s) {
+        flag = 1;
+        len = s.size();
+        prehash.resize(maxN);
+        prehash[0] = 0;
+        for (int i = 0; i < len; i++) {
+            prehash[i + 1] = (prehash[i] + pow[i] * s[i]) % mod;
+        }
+    }
+    long long GetSubstrHash(int l , int r) {
+        if (!flag) { cout << "ComputeHash\n"; return -1;}
+        long long hash_val = (prehash[r + 1] - prehash[l]) * inv[l] % mod;
+        if (hash_val < 0) hash_val += mod;
+        return (hash_val << 32LL);
+    }
+    void ComputePreAndSufHash(string &s) {
+        flag = 1;
+        len = s.size();
+        prehash.resize(maxN);
+        sufhash.resize(maxN);
+        prehash[0] = sufhash[0] = 0;
+        for (int i = 0; i < len; i++) {
+            prehash[i + 1] = (prehash[i] + pow[i] * s[i]) % mod;
+            sufhash[i + 1] = (sufhash[i] + pow[len - i + 1] * s[i]) % mod;
+        }
+    }
+    long long GetPrefixHash(int l , int r) {
+        return GetSubstrHash(l , r);
+    }
+    long long GetSuffixHash(int l , int r) {
+        if (!flag) { cout << "ComputePreAndSufHash\n"; return -1;}
+        long long hash_val = (sufhash[r + 1] - sufhash[l]) * inv[len - r + 1] % mod;
+        if (hash_val < 0) hash_val += mod;
+        return (hash_val << 32LL);
+    }
+    bool IsPallindrome(int l , int r) {
+        return (GetPrefixHash(l , r) == GetSuffixHash(l , r));
+    }
+    vector <int> RabinKarp(string &txt , string &ptrn) {
+        ComputeHash(txt);
+        long long ptrn_hash = GetHash(ptrn);
+        vector <int> occurences;
+        int txtlen = txt.size();
+        int ptrnlen = ptrn.size();
+        for (int i = 0; i < txtlen - ptrnlen + 1; i++) {
+            long long cur_hash = GetSubstrHash(i , ((i + ptrnlen) - 1));
+            // pattern match...
+            if (cur_hash == ptrn_hash)
+                occurences.emplace_back(i + 1);
+        }
+        return occurences;
+    }
+} ;
+
+//Formulas
+Formulas:
+1.Number of non-negative integral solutions of equation x1 + x2 + …… + xn = k is given by (n+k-1)! / (n-1)!*k!. 
+2.Number of positive integral solutions of equation x1 + x2 + ….. + xn = k is given by (k-1)! / (n-1)! * (k-n)!. 
+3.Derangment Sequence, D(n)=(D(n−1)+D(n−2))(n−1).
