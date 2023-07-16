@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int res, m, ans;
+
+int f(int pos, int Small, int ok, vector<int>&v, vector<vector<vector<int>>>&dp) {
+  if (pos == m)return ok;
+  if (dp[pos][Small][ok] != -1)return dp[pos][Small][ok];
+  int l = 0, r = v[pos], val = 0;
+  if (Small)r = 9;
+  for (int j = l; j <= r; j++) {
+    val += f(pos + 1, Small | (j < r), ok | (j == 7), v, dp);
+  }
+  return dp[pos][Small][ok] = val;
+}
+
+void solve() {
+
+  int n;
+  cin >> n;
+  int s = n;
+
+  vector<int>v;
+  while (s) {
+    v.push_back(s % 10);
+    s /= 10;
+  }
+  m = v.size();
+  reverse(v.begin(), v.end());
+
+  vector<vector<vector<int>>>dp(11, vector<vector<int>>(2, vector<int>(2, -1)));
+
+  ans += n;
+  res += f(0, 0, 0, v, dp);
+
+}
+
+signed main() {
+  ios_base::sync_with_stdio(0);
+  cin.tie(0); cout.tie(0);
+
+  int t;
+  cin >> t;
+
+  while (t--) {
+
+    solve();
+
+  }
+
+  cout << ans - res << '\n';
+
+  return 0;
+}
