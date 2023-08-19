@@ -1110,3 +1110,340 @@ Formulas:
 1.Number of non-negative integral solutions of equation x1 + x2 + …… + xn = k is given by (n+k-1)! / (n-1)!*k!. 
 2.Number of positive integral solutions of equation x1 + x2 + ….. + xn = k is given by (k-1)! / (n-1)! * (k-n)!. 
 3.Derangment Sequence, D(n)=(D(n−1)+D(n−2))(n−1).
+
+//New Addition
+
+__int128(Operations)
+__int128 read() {
+    __int128 x = 0, f = 1;
+    char ch = getchar();
+    while (ch < '0' || ch > '9') {
+        if (ch == '-') f = -1;
+        ch = getchar();
+    }
+    while (ch >= '0' && ch <= '9') {
+        x = x * 10 + ch - '0';
+        ch = getchar();
+    }
+    return x * f;
+}
+void print(__int128 x) {
+    if (x < 0) {
+        putchar('-');
+        x = -x;
+    }
+    if (x > 9) print(x / 10);
+    putchar(x % 10 + '0');
+}
+bool cmp(__int128 x, __int128 y) { return x > y; }
+
+RMQ
+const int MAX_N = 100005;
+const int LOG = 19;
+int a[MAX_N];
+int m[MAX_N][LOG]; // m[i][j] is minimum among a[i..i+2^j-1]
+int bin_log[MAX_N];
+int query(int L, int R) { // O(1)
+	int length = R - L + 1;
+	int k = bin_log[length];
+	return min(m[L][k], m[R-(1<<k)+1][k]);
+}
+int main() {
+	// 1) read input
+	int n;
+	cin >> n;
+	bin_log[1] = 0;
+	for(int i = 2; i <= n; i++) {
+		bin_log[i] = bin_log[i/2]+1;
+	}
+	for(int i = 0; i < n; i++) {
+		cin >> a[i];
+		m[i][0] = a[i];
+	}
+	// 2) preprocessing, O(N*log(N))
+	for(int k = 1; k < LOG; k++) {
+		for(int i = 0; i + (1 << k) - 1 < n; i++) {
+			m[i][k] = min(m[i][k-1], m[i+(1<<(k-1))][k-1]);
+		}
+	}
+
+Range Update Maximum Query
+const int MAX = 2e5 + 10;
+ll a[MAX], pre[MAX];
+struct node {
+    ll value = 0, lazy = 0;
+} tree[MAX * 4];
+void build(int at, int L, int R) {
+    if (L == R) {
+        tree[at].value = pre[L];
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = 2 * at;
+    int right = 2 * at + 1;
+    build(left, L, mid);
+    build( right, mid + 1, R);
+    tree[at].value = max(tree[left].value , tree[right].value);
+}
+void update(int at, int L, int R, int l, int r, ll val) {
+    if (l > r) return;
+    if (L == l && R == r) {
+        tree[at].value += val;
+        tree[at].lazy += val;
+        return;
+    }
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    update(left, L, mid, l, min(mid,r), val);
+    update(right, mid + 1, R, max(l, mid+1), r, val);
+    tree[at].value = max(tree[left].value, tree[right].value);
+}
+ll query(int at, int L, int R, int l, int r) {
+    if (l > r)
+        return LLONG_MIN;
+    if (l == L && r == R)
+        return tree[at].value;
+    int mid = (L + R) / 2;
+    int left = at * 2;
+    int right = at * 2 + 1;
+    tree[left].value += tree[at].lazy;
+    tree[left].lazy += tree[at].lazy;
+    tree[right].value += tree[at].lazy;
+    tree[right].lazy += tree[at].lazy;
+    tree[at].lazy = 0;
+    return max(query(left, L, mid, l, min(r, mid)), 
+               query(right, mid+1, R, max(l, mid+1), r));
+}
+Manacher
+    Guide:
+    1. string is 0 based indexed of length n.
+    2. the manacher will make a string of length 2 * n + 1. 
+        ex: "abba" will be "#a#b#b#a#".
+    3. Odd length palindromes: 
+        for all i = 0 to i < n
+            i is a center and stored maxlen palindrome in 2i + 1 th index in P.
+    4. Even length palindromes: 
+        there are n - 1 centered positions. 
+        for all i = 0 to i < n - 1
+            max length palindrome centered at i found in 2i + 2 th index in P.
+*/
+vector<int> Manacher_Odd_Length(string T) {
+    int n = T.size();
+    vector <int> P(n);
+    int C = 0, R = -1, rad; 
+    for (int i = 0; i < n; ++i) {
+        if (i <= R) {
+            rad = min(P[2 * C - i], R - i); 
+        } else {
+            rad = 0; 
+        }
+        // Try to extend
+        while (i + rad < n && i - rad >= 0 && T[i - rad] == T[i + rad]) {
+            rad++; 
+        }
+        P[i] = rad;
+        if (i + rad - 1 > R) {
+            C = i; 
+            R = i + rad - 1; 
+        }
+    }
+    for (int i = 0; i < (int)P.size(); i ++) {
+        P[i]--;
+    }
+    return P;
+}
+vector <int> Manacher(const string &s) {
+    string t;
+    for(auto c: s) {
+        t += string("#") + c;
+    }
+    return Manacher_Odd_Length(t + "#");
+}
+string LongestPalindrome(const string &s) {
+    vector <int> P = Manacher(s);
+    int mxlen = 0, startpos = -1;
+    for (int i = 0; i < (int)s.size(); i++) {
+        if (mxlen < P[2 * i + 1]) {
+            mxlen = P[2 * i + 1];
+            startpos = i - P[2 * i + 1] / 2;
+        }
+    }
+    for (int i = 0; i < (int)s.size() - 1; i++) {
+        if (mxlen < P[2 * i + 2]) {
+            mxlen = P[2 * i + 2];
+            startpos = i - P[2 * i + 2] / 2 + 1;
+        }
+    }
+    return s.substr(startpos, mxlen);
+}
+XOR (1 to n)
+int computeXOR(int n)
+{
+  if (n % 4 == 0)
+    return n;
+  if (n % 4 == 1)
+    return 1;
+  if (n % 4 == 2)
+    return n + 1;
+  return 0;
+}
+AND(l to r)
+ll andOperator(ll a, ll b) {
+      ll shiftcount = 0;
+      while(a != b and a > 0) {
+          shiftcount++;
+          a = a >> 1;
+          b = b >> 1;
+    }
+      return (a << shiftcount);
+}
+
+PollardRho
+typedef long long ll;
+typedef unsigned long long ull;
+namespace Rho {
+  ull mul (ull a, ull b, ull mod) {
+    ll ret = a * b - mod * (ull) (1.L / mod * a * b);
+    return ret + mod * (ret < 0) - mod * (ret >= (ll) mod);
+  }
+  ull bigMod (ull a, ull e, ull mod) {
+    ull ret = 1;
+    while (e) {
+      if (e & 1) ret = mul(ret, a, mod);
+      a = mul(a, a, mod), e >>= 1;
+    }
+    return ret;
+  }
+    
+  bool isPrime (ull n) {
+    if (n < 2 or n % 6 % 4 != 1) return (n | 1) == 3;
+    ull a[] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
+    ull s = __builtin_ctzll(n - 1), d = n >> s;
+    for (ull x : a) {
+      ull p = bigMod(x % n, d, n), i = s;
+      while (p != 1 and p != n - 1 and x % n and i--) p = mul(p, p, n);
+      if (p != n - 1 and i != s) return 0;
+    }
+    return 1;
+  }
+  ull pollard (ull n) {
+    auto f = [&] (ull x) {return mul(x, x, n) + 1;};
+    ull x = 0, y = 0, t = 0, prod = 2, i = 1, q;
+    while (t++ % 40 or __gcd(prod, n) == 1) {
+      if (x == y) x = ++i, y = f(x);
+      if ((q = mul(prod, max(x, y) - min(x, y), n))) prod = q;
+      x = f(x), y = f(f(y));
+    }
+    return __gcd(prod, n);
+  }
+  vector <ull> factor (ull n) {
+    if (n == 1) return {};
+    if (isPrime(n)) return {n};
+    ull x = pollard(n);
+    auto l = factor(x), r = factor(n / x);
+    l.insert(l.end(), r.begin(), r.end());
+    return l;
+  }
+};
+int t; ll n;
+int main() {
+  cin >> t;
+  while (t--) {
+    scanf("%lld", &n);
+    vector <ull> facs = Rho::factor(n);
+    sort(facs.begin(), facs.end());
+    printf("%d", (int) facs.size());
+    for (auto it : facs) printf(" %llu", it);
+    puts("");
+  }
+  return 0;
+}
+Z_function
+vector<int> z_function(string &s) {
+    int n = s.size();
+    vector<int> z(n);
+    int l = 0, r = 0;
+    for (int i = 1; i < n; i++) {
+        if (i < r) {
+            z[i] = min(r - i, z[i - l]);
+        }
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]]) {
+            z[i]++;
+        }
+        if (i + z[i] > r) {
+            l = i;
+            r = i + z[i];
+        }
+    }
+    return z;
+}
+KMP
+vector<int> build_failure_function(string &pattern) {
+    int m = pattern.size();
+    vector<int>failure(m + 1);
+    for (int i = 2; i <= m; i++) {
+        int j = failure[i - 1];
+        while (true) {
+            if (pattern[j] == pattern[i - 1]) {
+                failure[i] = j + 1;
+                break;
+            }
+            if (j == 0) {
+                failure[i] = 0;
+                break;
+            }
+            j = failure[j];
+        }
+    }
+    return failure;
+}
+//*Hash
+left to right hash==>
+prehash[i + 1] = (prehash[i] + pow[i] * s[i]) % mod;sufhash[i + 1] = (sufhash[i] + pow[len - i + 1] * s[i]) % mod;hash_val = (prehash[r + 1] - prehash[l]) * inv[l] % mod;hash_val = (sufhash[r + 1] - sufhash[l]) * inv[len - r + 1] % mod;
+*//
+Triangle Formula
+বিষমবাহু ত্রিভুজের ক্ষেত্রফলের সূত্র,
+A =sqrt(s*(s-a)(s-b)(s-c))বর্গ একক; যেখানে s =(a+b+c)/2;
+সমদ্বিবাহু ত্রিভুজের A = (b/4) * sqrt(4a*a – b*b);
+সমবাহু ত্রিভুজের A = sqrt(3) / 4 * (a * a);
+a/sinA = b/sinB = c/sinC;
+The law of Cosines: c*c = a*a + b*b – 2ab cos(C);
+Bits
+1. a|b = a⊕b + a&b
+      2. a⊕(a&b) = (a|b)⊕b
+      3. b⊕(a&b) = (a|b)⊕a
+4. (a&b)⊕(a|b) = a⊕b
+5. a+b = a|b + a&b
+6. a+b = a⊕b + 2(a&b)
+7. a-b = (a⊕(a&b))-((a|b)⊕a)
+      8. a-b = ((a|b)⊕b)-((a|b)⊕a)
+      9. a-b = (a⊕(a&b))-(b⊕(a&b))
+      10. a-b = ((a|b)⊕b)-(b⊕(a&b))
+11 . n mod 2^i = n&(2^i − 1);
+12 . 1⊕2⊕3⊕⋯⊕(4k−1)=0 for any k≥0;
+1.Number of non-negative integral solutions of equation x1 + x2 + …… + xn = k is given by (n+k-1)! / (n-1)!*k!. 
+2.Number of positive integral solutions of equation x1 + x2 + ….. + xn = k is given by (k-1)! / (n-1)! * (k-n)!. 
+3.Derangment Sequence, D(n)=(D(n−1)+D(n−2))(n−1).
+4. sum of squares from 1 to n=(n (n+1)(2n+1))/6;
+5. sum of squares from first n even =(2n (n+1)(2n+1))/3;
+6. first n odd = (n(2n+1)(2n-1))/3;
+7.gcd(lcm(a,b),lcm(b,c),lcm(a,c))=lcm(gcd(a,b),gcd(b,c),gcd(a,c));
+8. gcd(AL,AL+1,…,AR)=gcd(AL,AL+1−AL,…,AR−AR−1);
+9. gcd(a,lcm(b,c))=lcm(gcd(a,b),gcd(a,c));
+10. lcm(a,gcd(b,c))=gcd(lcm(a,b),lcm(a,c));
+Catalan Numbers
+C0 = 1, Cn = 
+Cn = (2n C n) – (2n C (n+1)) = (1/(n+1))(2n C n);
+Stirling numbers of the second kind
+1. Stirling number of the second kind is the number of ways to partition a set of n objects into k non-empty subsets.
+2. S(n,k)=k*S(n−1,k)+S(n−1,k−1),whereS(0,0)=1,S(n,0)=S(0,n)=0;
+3. S(n,2)=2^(n−1) − 1;
+4. S(n, k)⋅k! = number of ways to color n nodes using colors from 1 to k such that each color is used at least once.
+5. An r -associated Stirling number of the second kind is the number of ways to partition a set of n objects into k subsets, with each subset containing at least r elements. It is denoted by Sr(n,k) and obeys the recurrence relation. Sr(n+1,k)=k*Sr(n,k)+(nC(r−1))Sr(n−r+1,k−1);
+6.Sd(n,k), to be the number of ways to partition the integers 1,2,….,n into k nonempty subsets such that all elements in each subset have pairwise distance at least d. That is, for any integers i and j in a given subset, it is required that |i−j|≥d. It has been shown that these numbers satisfy,  Sd(n,k)=S(n−d+1,k−d+1),n≥k≥d;
