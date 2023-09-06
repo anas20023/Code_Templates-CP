@@ -1,0 +1,32 @@
+vector<int> build_failure_function(vector<int> &pattern) {
+  int m = pattern.size();
+  vector<int>failure(m + 1);
+  failure[0] = 0;
+  failure[1] = 0;
+ 
+  for (int i = 2; i <= m; i++) {
+    int j = failure[i - 1];
+    while (true) {
+      if (pattern[j] == pattern[i - 1]) {
+        failure[i] = j + 1;
+        break;
+      }
+      if (j == 0) {
+        failure[i] = 0;
+        break;
+      }
+      j = failure[j];
+    }
+  }
+  return failure;
+}
+
+for (int i = 0, cur = 0, len = s.size(); i < len; i++) {
+  while (cur > 0 and t[cur] != s[i])
+    cur = failure[cur];
+  if (s[i] == t[cur])cur++;
+  if (cur == t.size()) {
+    ans++;
+    cur = failure[cur];
+  }
+}
